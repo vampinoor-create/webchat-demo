@@ -1,0 +1,636 @@
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  :root{
+    --stone: #F1EAE0;
+    --stone-deep: #E6DBCB;
+    --ink: #2B2420;
+    --ink-soft: #6B615A;
+    --wine: #6E2A38;
+    --wine-deep: #521F29;
+    --sage: #7C8A6E;
+    --gold: #B8912F;
+    --paper: #FBF8F3;
+    --radius: 18px;
+  }
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  .demo-root{
+    font-family:'Manrope', sans-serif;
+    background: var(--stone);
+    color: var(--ink);
+    min-height:100vh;
+    padding: 28px 20px 60px;
+    position:relative;
+    overflow-x:hidden;
+  }
+  .demo-root::before{
+    content:"";
+    position:absolute; inset:0;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(110,42,56,0.06), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(124,138,110,0.10), transparent 45%);
+    pointer-events:none;
+  }
+
+  .control-bar{
+    max-width: 980px;
+    margin: 0 auto 22px;
+    display:flex;
+    align-items:center;
+    gap:14px;
+    background: var(--paper);
+    border: 1px solid var(--stone-deep);
+    border-radius: 14px;
+    padding: 12px 16px;
+    position:relative;
+    z-index:2;
+  }
+  .control-bar label{
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    font-weight:600;
+    white-space:nowrap;
+  }
+  .control-bar input{
+    flex:1;
+    min-width: 120px;
+    border: 1px solid var(--stone-deep);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-family:'Manrope', sans-serif;
+    font-size: 14px;
+    background: #fff;
+    color: var(--ink);
+  }
+  .control-bar input:focus{ outline:2px solid var(--wine); outline-offset:1px; }
+  .control-bar .hint{
+    font-size: 12px;
+    color: var(--ink-soft);
+    font-style: italic;
+  }
+
+  .stage{
+    max-width: 980px;
+    margin: 0 auto;
+    position:relative;
+    z-index:1;
+  }
+
+  /* Mock storefront behind the widget */
+  .storefront{
+    background: var(--paper);
+    border-radius: 22px;
+    border: 1px solid var(--stone-deep);
+    padding: 40px 40px 200px;
+    position:relative;
+    overflow:hidden;
+    min-height: 560px;
+  }
+  .storefront-eyebrow{
+    font-size:12px;
+    letter-spacing:0.16em;
+    text-transform:uppercase;
+    color: var(--wine);
+    font-weight:700;
+    margin-bottom:10px;
+  }
+  .storefront h1{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    font-size: clamp(30px, 4vw, 46px);
+    line-height:1.05;
+    margin:0 0 14px;
+    max-width: 520px;
+  }
+  .storefront p.sub{
+    color: var(--ink-soft);
+    max-width: 440px;
+    line-height:1.6;
+    margin: 0 0 30px;
+  }
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    max-width: 620px;
+  }
+  .card{
+    background: var(--stone);
+    border-radius: 12px;
+    aspect-ratio: 3/4;
+    position:relative;
+    overflow:hidden;
+    border: 1px solid var(--stone-deep);
+  }
+  .card::after{
+    content: attr(data-price);
+    position:absolute;
+    left:10px; bottom:10px;
+    font-size:12px;
+    font-weight:600;
+    background: rgba(251,248,243,0.9);
+    padding: 3px 8px;
+    border-radius: 20px;
+  }
+  .card .swatch{
+    position:absolute; inset:0;
+  }
+
+  /* Chat widget */
+  .chat-launcher{
+    position:absolute;
+    right: 32px; bottom: 32px;
+    display:flex; align-items:center; gap:10px;
+    z-index: 3;
+  }
+  .chat-badge{
+    background: var(--wine);
+    color: #fff;
+    font-size: 11px;
+    font-weight:700;
+    letter-spacing:0.06em;
+    text-transform:uppercase;
+    padding: 6px 12px;
+    border-radius: 20px;
+    box-shadow: 0 6px 16px rgba(110,42,56,0.25);
+    animation: floaty 3s ease-in-out infinite;
+  }
+  @keyframes floaty{
+    0%,100%{ transform: translateY(0); }
+    50%{ transform: translateY(-4px); }
+  }
+
+  .chat-panel{
+    position:absolute;
+    right: 24px; bottom: 24px;
+    width: 360px;
+    max-width: calc(100% - 48px);
+    background: var(--paper);
+    border-radius: var(--radius);
+    box-shadow: 0 24px 60px rgba(43,36,32,0.28);
+    border: 1px solid var(--stone-deep);
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    z-index: 4;
+  }
+  .chat-header{
+    background: linear-gradient(135deg, var(--wine), var(--wine-deep));
+    color: #fff;
+    padding: 16px 18px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .chat-avatar{
+    width:36px; height:36px;
+    border-radius:50%;
+    background: var(--gold);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:15px;
+    color: var(--wine-deep);
+    flex-shrink:0;
+  }
+  .chat-header-text .brand-name{
+    font-family:'Fraunces', serif;
+    font-size: 15px;
+    font-weight:600;
+    line-height:1.2;
+  }
+  .chat-header-text .status{
+    font-size:11px;
+    opacity:0.85;
+    display:flex; align-items:center; gap:5px;
+  }
+  .status .dot{
+    width:6px; height:6px; border-radius:50%;
+    background:#8FD19E;
+    display:inline-block;
+  }
+
+  .chat-body{
+    padding: 16px 14px;
+    display:flex;
+    flex-direction:column;
+    gap: 10px;
+    height: 360px;
+    overflow-y:auto;
+    background:
+      linear-gradient(var(--paper), var(--paper));
+  }
+  .chat-body::-webkit-scrollbar{ width:6px; }
+  .chat-body::-webkit-scrollbar-thumb{ background: var(--stone-deep); border-radius:4px; }
+
+  .msg{
+    max-width: 82%;
+    padding: 9px 13px;
+    border-radius: 14px;
+    font-size: 13.5px;
+    line-height:1.45;
+    animation: rise 0.25s ease;
+  }
+  @keyframes rise{
+    from{ opacity:0; transform: translateY(6px); }
+    to{ opacity:1; transform: translateY(0); }
+  }
+  .msg.bot{
+    align-self:flex-start;
+    background: var(--stone);
+    border-bottom-left-radius:4px;
+    color: var(--ink);
+  }
+  .msg.user{
+    align-self:flex-end;
+    background: var(--wine);
+    color: #fff;
+    border-bottom-right-radius:4px;
+  }
+  .msg.system{
+    align-self:center;
+    font-size:11px;
+    color: var(--ink-soft);
+    background: transparent;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+  }
+  .product-card{
+    align-self:flex-start;
+    max-width: 82%;
+    background:#fff;
+    border: 1px solid var(--stone-deep);
+    border-radius: 12px;
+    overflow:hidden;
+    animation: rise 0.25s ease;
+  }
+  .product-card .swatchbar{ height:70px; background: linear-gradient(135deg,#8A6F76,#6E2A38); }
+  .product-card .pc-body{ padding:9px 11px; }
+  .product-card .pc-title{ font-weight:700; font-size:12.5px; margin-bottom:2px; }
+  .product-card .pc-meta{ font-size:11.5px; color:var(--ink-soft); }
+  .product-card .pc-price{ font-weight:700; color:var(--wine); font-size:13px; margin-top:4px; }
+
+  .quick-replies{
+    display:flex; flex-wrap:wrap; gap:6px;
+    padding: 0 14px 10px;
+  }
+  .qr-btn{
+    border: 1px solid var(--wine);
+    color: var(--wine);
+    background: transparent;
+    font-size: 11.5px;
+    font-weight:600;
+    padding: 6px 11px;
+    border-radius: 20px;
+    cursor:pointer;
+    transition: all 0.15s ease;
+    font-family:'Manrope', sans-serif;
+  }
+  .qr-btn:hover{ background: var(--wine); color:#fff; }
+
+  .typing{
+    align-self:flex-start;
+    display:flex;
+    gap:4px;
+    padding: 10px 13px;
+    background: var(--stone);
+    border-radius: 14px;
+    border-bottom-left-radius:4px;
+  }
+  .typing span{
+    width:6px; height:6px;
+    background: var(--ink-soft);
+    border-radius:50%;
+    display:inline-block;
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2){ animation-delay:0.15s; }
+  .typing span:nth-child(3){ animation-delay:0.3s; }
+  @keyframes bounce{
+    0%,60%,100%{ transform: translateY(0); opacity:0.5; }
+    30%{ transform: translateY(-4px); opacity:1; }
+  }
+
+  .chat-input-row{
+    display:flex;
+    gap:8px;
+    padding: 12px;
+    border-top: 1px solid var(--stone-deep);
+    background: #fff;
+  }
+  .chat-input-row input{
+    flex:1;
+    border: 1px solid var(--stone-deep);
+    border-radius: 20px;
+    padding: 9px 14px;
+    font-family:'Manrope', sans-serif;
+    font-size:13px;
+    background: var(--stone);
+    color: var(--ink);
+  }
+  .chat-input-row input:focus{ outline:2px solid var(--wine); outline-offset:1px; }
+  .chat-input-row button{
+    background: var(--wine);
+    color:#fff;
+    border:none;
+    border-radius:50%;
+    width:38px; height:38px;
+    flex-shrink:0;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition: background 0.15s ease;
+  }
+  .chat-input-row button:hover{ background: var(--wine-deep); }
+  .chat-input-row button:focus-visible{ outline:2px solid var(--gold); outline-offset:2px; }
+
+  @media (max-width: 720px){
+    .storefront{ padding: 28px 20px 240px; }
+    .grid{ grid-template-columns: repeat(2,1fr); max-width:100%; }
+    .chat-panel{ right:12px; left:12px; width:auto; bottom:12px; }
+    .chat-launcher{ right:20px; bottom:20px; }
+  }
+</style>
+
+<div class="demo-root">
+  <div class="control-bar">
+    <label for="brandInput">Prospect's brand name</label>
+    <input id="brandInput" type="text" value="Sage &amp; Co." maxlength="26" />
+    <span class="hint">— type it live while on a call and the widget updates instantly</span>
+  </div>
+
+  <div class="stage">
+    <div class="storefront">
+      <div class="storefront-eyebrow" id="eyebrowText">Sage &amp; Co. — New Arrivals</div>
+      <h1 id="heroTitle">Effortless pieces,<br>made to be lived in.</h1>
+      <p class="sub">This is a mock of your prospect's own site. The chat widget on the right is the actual thing you're selling — let it run, or type a question yourself.</p>
+      <div class="grid">
+        <div class="card" data-price="$68"></div>
+        <div class="card" data-price="$142"></div>
+        <div class="card" data-price="$54"></div>
+      </div>
+
+      <div class="chat-panel" id="chatPanel">
+        <div class="chat-header">
+          <div class="chat-avatar" id="avatarInitial">S</div>
+          <div class="chat-header-text">
+            <div class="brand-name" id="headerBrand">Sage &amp; Co. Stylist</div>
+            <div class="status"><span class="dot"></span> Replies instantly, 24/7</div>
+          </div>
+        </div>
+        <div class="chat-body" id="chatBody"></div>
+        <div class="quick-replies" id="quickReplies">
+          <button class="qr-btn" data-q="Is it still in stock?">Is it in stock?</button>
+          <button class="qr-btn" data-q="What sizes do you have?">Sizing</button>
+          <button class="qr-btn" data-q="Do you have any discount codes?">Discounts</button>
+          <button class="qr-btn" data-q="How long does shipping take?">Shipping</button>
+        </div>
+        <div class="chat-input-row">
+          <input id="chatInput" type="text" placeholder="Type a question, e.g. 'is the emerald dress in medium?'" />
+          <button id="sendBtn" aria-label="Send message">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12L20 4L13 20L11 13L4 12Z" fill="white"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ============================================================
+  // TRACKING SETUP — read this before sending the demo out
+  // ============================================================
+  // 1. Go to https://web3forms.com
+  // 2. Type in your email address and submit — no account, no
+  //    password. You'll instantly get an "Access Key" by email.
+  // 3. Paste that key below, replacing the placeholder.
+  // 4. Every time someone opens/uses the demo, you'll get a real
+  //    email straight to your inbox — works even if you're opening
+  //    this file directly (no hosting required).
+  const WEB3FORMS_KEY = "08420a25-6b8e-48e9-a8b9-b64ec1128ec7";
+
+  function notify(message, dedupeKey){
+    // Fails silently if offline or key not set up — never blocks the demo.
+    try{
+      if(!WEB3FORMS_KEY || WEB3FORMS_KEY.indexOf("REPLACE-WITH") === 0) return;
+
+      // Safeguard 1: skip if the tab isn't actually visible/focused.
+      // Filters out link-preview bots and background pre-loads that
+      // execute JS without a real person looking at the screen.
+      if(document.visibilityState !== 'visible' || !document.hasFocus()){
+        return;
+      }
+
+      // Safeguard 2: cooldown per event type, stored per-browser.
+      // Stops the same person's repeat reloads/testing from flooding
+      // your inbox with duplicate "opened" or "watched" alerts.
+      // A revisit after the cooldown window still notifies — that's
+      // a genuine signal someone came back to look again.
+      if(dedupeKey){
+        const storageKey = 'aiDemoNotify_' + dedupeKey;
+        const cooldownMs = 30 * 60 * 1000; // 30 minutes
+        const last = parseInt(localStorage.getItem(storageKey) || '0', 10);
+        const now = Date.now();
+        if(now - last < cooldownMs){
+          return;
+        }
+        localStorage.setItem(storageKey, String(now));
+      }
+
+      fetch("https://api.web3forms.com/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          access_key: WEB3FORMS_KEY,
+          subject: "AI Demo Activity",
+          message: message
+        })
+      }).catch(function(){});
+    }catch(e){ /* no-op */ }
+  }
+  // ============================================================
+
+  const brandInput = document.getElementById('brandInput');
+  const eyebrow = document.getElementById('eyebrowText');
+  const headerBrand = document.getElementById('headerBrand');
+  const avatarInitial = document.getElementById('avatarInitial');
+  const chatBody = document.getElementById('chatBody');
+  const chatInput = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('sendBtn');
+  const quickReplies = document.getElementById('quickReplies');
+
+  function currentBrand(){
+    return (brandInput.value || 'Your Brand').trim();
+  }
+
+  function updateBrand(){
+    const name = currentBrand();
+    eyebrow.textContent = name + ' — New Arrivals';
+    headerBrand.textContent = name + ' Stylist';
+    avatarInitial.textContent = name.charAt(0).toUpperCase() || 'A';
+  }
+  brandInput.addEventListener('input', updateBrand);
+
+  function scrollDown(){
+    chatBody.scrollTop = chatBody.scrollHeight;
+  }
+
+  function addMsg(text, who){
+    const el = document.createElement('div');
+    el.className = 'msg ' + who;
+    el.textContent = text;
+    chatBody.appendChild(el);
+    scrollDown();
+  }
+
+  function addProductCard(title, meta, price){
+    const el = document.createElement('div');
+    el.className = 'product-card';
+    el.innerHTML = '<div class="swatchbar"></div><div class="pc-body">' +
+      '<div class="pc-title">' + title + '</div>' +
+      '<div class="pc-meta">' + meta + '</div>' +
+      '<div class="pc-price">' + price + '</div></div>';
+    chatBody.appendChild(el);
+    scrollDown();
+  }
+
+  function addSystem(text){
+    const el = document.createElement('div');
+    el.className = 'msg system';
+    el.textContent = text;
+    chatBody.appendChild(el);
+    scrollDown();
+  }
+
+  function showTyping(){
+    const el = document.createElement('div');
+    el.className = 'typing';
+    el.id = 'typingIndicator';
+    el.innerHTML = '<span></span><span></span><span></span>';
+    chatBody.appendChild(el);
+    scrollDown();
+    return el;
+  }
+  function hideTyping(){
+    const el = document.getElementById('typingIndicator');
+    if(el) el.remove();
+  }
+
+  function botReply(text, delay){
+    return new Promise(resolve => {
+      showTyping();
+      setTimeout(() => {
+        hideTyping();
+        addMsg(text, 'bot');
+        resolve();
+      }, delay || 900);
+    });
+  }
+
+  // Autoplay opening script
+  const script = [
+    { who:'user', text:'hey! is the emerald wrap dress still available in a medium?' },
+    { who:'bot', text:'Yes — the Emerald Wrap Dress has 1 left in Medium 🎉 Want me to hold it for you?' },
+    { who:'product' },
+    { who:'user', text:'yes please! how much is it and do you ship to Canada?' },
+    { who:'bot', text:"It's $128 CAD, and yes — Canada shipping is 4-6 business days, flat $9. I've held your size for 15 minutes." },
+    { who:'bot', text:"Since you liked the emerald tone, a few people also pair this with our Gold Hoop set — want to see it?" },
+    { who:'system', text:'Customer added to cart • Order handed to human for final confirmation' }
+  ];
+
+  let i = 0;
+  function playScript(){
+    if(i >= script.length){
+      addSystem('— demo complete, try typing your own question below —');
+      notify("✅ " + currentBrand() + " watched the full demo script", 'watched');
+      return;
+    }
+    const step = script[i];
+    i++;
+    if(step.who === 'user'){
+      setTimeout(() => { addMsg(step.text, 'user'); setTimeout(playScript, 500); }, 700);
+    } else if(step.who === 'bot'){
+      botReply(step.text, 1100).then(() => setTimeout(playScript, 500));
+    } else if(step.who === 'product'){
+      showTyping();
+      setTimeout(() => {
+        hideTyping();
+        addProductCard('Emerald Wrap Dress', 'Medium • Held for 15 min', '$128.00 CAD');
+        setTimeout(playScript, 600);
+      }, 900);
+    } else if(step.who === 'system'){
+      setTimeout(() => { addSystem(step.text); setTimeout(playScript, 400); }, 500);
+    }
+  }
+
+  // Keyword-based responses for free typing
+  function generateReply(msg){
+    const m = msg.toLowerCase();
+    const brand = currentBrand();
+    if(m.includes('stock') || m.includes('available')){
+      return "Let me check — that item shows 3 left in stock right now. Want me to reserve one for you for the next 15 minutes?";
+    }
+    if(m.includes('size') || m.includes('fit') || m.includes('medium') || m.includes('small') || m.includes('large')){
+      return "We carry XS–XL on that style. Based on the size chart, most customers size up if they prefer a relaxed fit — want me to send the exact measurements?";
+    }
+    if(m.includes('discount') || m.includes('code') || m.includes('sale') || m.includes('coupon')){
+      return "Since this is your first message to us, here's 10% off: WELCOME10 — want me to apply it to your cart?";
+    }
+    if(m.includes('ship')){
+      return "Standard shipping is 3-5 business days domestically, and international runs 7-10 days. Free over $75!";
+    }
+    if(m.includes('return') || m.includes('exchange')){
+      return "Easy returns within 30 days, no questions asked. I can send you a prepaid label right now if you need one.";
+    }
+    if(m.includes('price') || m.includes('cost') || m.includes('how much')){
+      return "That piece is $68 — and I can show you 2 similar styles in different price points if you'd like options.";
+    }
+    return "Great question! In a real deployment, " + brand + "'s AI would pull this straight from your product catalog — price, stock, and sizing, live, instead of a canned demo answer.";
+  }
+
+  let sendLocked = false;
+
+  function handleSend(text, isTyped){
+    const trimmed = (text || '').trim();
+    if(!trimmed || sendLocked) return;
+    sendLocked = true;
+    setTimeout(() => { sendLocked = false; }, 600);
+
+    addMsg(trimmed, 'user');
+    chatInput.value = '';
+    botReply(generateReply(trimmed), 1000 + Math.random()*400);
+    if(isTyped){
+      // Someone typing their own question is the strongest buying signal —
+      // this is the moment to follow up same-day. No cooldown here since
+      // each typed message is genuinely new content worth seeing.
+      notify("💬 " + currentBrand() + " typed their own question: \"" + trimmed + "\"");
+    } else {
+      // Quick-reply chips are lower-signal and easy to double-tap,
+      // so these share a short per-chip cooldown.
+      notify("👉 " + currentBrand() + " clicked: " + trimmed, 'quickreply_' + trimmed);
+    }
+  }
+
+  sendBtn.addEventListener('click', () => handleSend(chatInput.value, true));
+  chatInput.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter') handleSend(chatInput.value, true);
+  });
+  quickReplies.querySelectorAll('.qr-btn').forEach(btn => {
+    btn.addEventListener('click', () => handleSend(btn.getAttribute('data-q'), false));
+  });
+
+  updateBrand();
+
+  // Fire once the page has actually rendered — a real person looking at it,
+  // not just a link preview bot unwrapping the URL.
+  setTimeout(function(){
+    notify("🔔 Demo opened — customized for: " + currentBrand(), 'opened');
+  }, 2500);
+
+  setTimeout(playScript, 600);
+})();
+</script>
